@@ -377,7 +377,6 @@ if ~strcmp(imgtype, 'MAT')
 end
 
 Meta.Derr = Derr;
-Meta.T2err = T2err;
 Meta.sigma0range = [sigma0min, sigma0max];
 
 save([outf '/Meta.mat'], "Meta");
