@@ -13,7 +13,7 @@ modeltype = 'Original VERDICT';
 schemename = 'Original';
 
 % Sigma0 value (run each sigma0 value as separate experiment)
-sigma0 = 0.04;
+sigma0 = 0.06;
 
 % Fitting type
 fittingtype = 'normal';  % 'normal' using Rice network; 'adaptive' using Ratio networks
@@ -22,7 +22,7 @@ if strcmp(fittingtype, 'normal')
     fittingtechnique = 'MLP';
     noisetype = 'Rice';
     T2train = 10000;
-    sigma0train = 0.04;
+    sigma0train = 0.02;
 else
     noisetype = 'Ratio';
 end
