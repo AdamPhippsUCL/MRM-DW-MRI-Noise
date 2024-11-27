@@ -1,4 +1,4 @@
-% Script to perform phantom experiment 1
+% Script to perform phantom experiment 2
 
 % Define root folder
 rootfolder = pwd;
@@ -7,27 +7,24 @@ rootfolder = pwd;
 ImageDatafolder = fullfile(rootfolder, 'Phantom Experiments', 'Imaging Data');
 
 
-%% Exepriment Settings
+%% Experiment Settings
 
 % Noise model in fitting
 noisetype = 'Ratio';
 
 % Use denoised images?
-usedenoised = false;
+usedenoised = true;
 
 % Figure visibility
-figvis = 'on';
+figvis = 'off';
 
 % Define image names to use
 ImageNames = {
-    % 'b1500_Ex1',...
-    % 'b2000_Ex1',...
-    % 'b2100_Ex1',...
-    % 'b2400_Ex1',...
-    'b2500_Ex1',...
-    'b2750_Ex1',...
-    'b3000_Ex1',...
-    'b3500_Ex1',...
+    'b2500_Nb2_Ex2',...
+    'b2500_Nb4_Ex2',...
+    'b2500_Nb8_Ex2',...
+    'b2500_Nb12_Ex2',...
+    'b2500_Nb16_Ex2',...
     };
 
 Nimg = length(ImageNames);
@@ -36,12 +33,12 @@ Nimg = length(ImageNames);
 ROINames = {
     "ROI1",...
     "ROI2",...
-    "ROI3",...
-    "ROI4",...
-    "ROI5",...
-    "ROI6",...
-    "ROI7",...
-    "ROI8"
+    % "ROI3",...
+    % "ROI4",...
+    % "ROI5",...
+    % "ROI6",...
+    % "ROI7",...
+    % "ROI8"
     };
 
 NROI = length(ROINames);
@@ -62,6 +59,7 @@ ROIfolder = fullfile(ImageDatafolder , 'ROIs');
 % Load image and ROI details
 load([ImageDatafolder '/ImageDetails.mat'])
 load([ImageDatafolder '/ROIDetails.mat'])
+
 
 
 %% Experiment
@@ -89,7 +87,7 @@ for ROIindx = 1:NROI
         NSA = ImageDetails.NSA{whereimg};
         Rav = ImageDetails.Rav{whereimg};
 
-        disp(['ROI: ' ROIName ', Image: ' ImageName])
+        disp(['ROI: ' char(ROIName) ', Image: ' char(ImageName)])
         
 
         % Load ROI
@@ -114,17 +112,14 @@ for ROIindx = 1:NROI
 
         % Rescale if using DN images (rescale map from bias removal method)
         if strcmp(imgtype, 'MAT DN')
-            if rescale
-                Rescale = double(load(fullfile(imagefolder , char(ImageName) , 'Rescale.mat')).Rescale);
-                ROIrescale = Rescale(ROI);
-                shift = mean(ROIvalues)*(1-mean(ROIrescale));
-                ROIvalues = ROIvalues - shift;
-            end
+            Rescale = double(load(fullfile(imagefolder , char(ImageName) , 'Rescale.mat')).Rescale);
+            ROIrescale = Rescale(ROI);
+            shift = mean(ROIvalues)*(1-mean(ROIrescale));
+            ROIvalues = ROIvalues - shift;
         end
 
 
         % Define histogram bins
-
         binmin = 0;
         binmax = 2;
         if max(ROIvalues)<1
@@ -218,7 +213,9 @@ for ROIindx = 1:NROI
         ax = gca();
         ax.FontSize = 12;
         legend;
-        pause(1)
+        if strcmp(figvis, 'on')
+            pause(1)
+        end
         close(f);
 
         % Fill in results
@@ -234,20 +231,28 @@ for ROIindx = 1:NROI
 end
 
 
-
 %% Plot results
 
-
 colordict = dictionary([1,2,3,4,5,6,7,8], [	"#0072BD", 	"#D95319",	"#EDB120", 	"#7E2F8E", "#77AC30", "#4DBEEE", "#A2142F", "#e981cd"]);
-concentrations = dictionary(["ROI1","ROI2","ROI3","ROI4","ROI5","ROI6","ROI7","ROI8"], ["50%", "40%", "30%", "20%", "10%", "5%", "2.5%", "1mM"] );
+concentrations = dictionary([1,2,3,4,5,6,7,8], ["50% PVP", "40% PVP", "30% PVP", "20% PVP", "10% PVP", "5% PVP", "2.5% PVP", "1mM NiCl_2"]);
 
+Nbs = zeros(1,Nimg);
+for imgindx = 1:Nimg
+    % Get image details
+    ImageName = ImageNames{imgindx};
+    whereimg = [ImageDetails.ProtocolName{:}] == ImageName;
+    NSA = ImageDetails.NSA{whereimg};
+    Rav = ImageDetails.Rav{whereimg};
+    Nbs(imgindx)=NSA*Rav;
+end
 
-% == Figure 1: sigma0 estimation
 
 fig1 = figure;
+fig1.Position = [300   200   400   400];
 
 sigma0s = zeros(NROI, Nimg);
 
+% Scatter plot for each ROI
 for ROIindx = 1:NROI
 
     % Get ROI details
@@ -255,116 +260,36 @@ for ROIindx = 1:NROI
     whereROI = [ROIDetails.ROIName{:}] == ROIName;
     T2 = ROIDetails.T2{whereROI};
     D = ROIDetails.D{whereROI};
-
 
     % ROI bools
     ROIbools = ([FittingResults.ROIName] == ROIName);
 
     % Extract sigma0 measurements
     sigma0s(ROIindx, :) = [FittingResults(ROIbools).sigma0fit];
-    scatter(ROIindx*ones(Nimg, 1), sigma0s(ROIindx, :), '*', MarkerEdgeColor = colordict(ROIindx), DisplayName = concentrations(ROIName)) 
+
+
+    plot(1./sqrt(Nbs), sigma0s(ROIindx,:)/mean(sigma0s(ROIindx, :)), '*-', DisplayName = concentrations(ROIindx), Color = colordict(ROIindx))
     hold on
+    xlabel('N_{b>0}')
+    ylabel('\sigma_0 / mean(\sigma_0)')
+    if ~usedenoised
+        title(noisetype)
+    else
+        title([char(noisetype) ' (DN)'])
+    end
+    legend(NumColumns = 2)
+    ax = gca();
+    ax.FontSize = 12;
 
 end
-
-boxplot(transpose(sigma0s))
-xticks(linspace(1,NROI,NROI))
-xticklabels(concentrations(ROINames))
-xlabel('PVP concentration')
-ylabel('Estimated \sigma_0')
-ylim([0, 0.25]);
-grid on
-title(noisetype)
-legend;
-ax = gca();
-ax.FontSize = 12;
-
-
-% === Figure 2: D estimation
-
-fig2 = figure;
-
-Ds = zeros(NROI, Nimg);
-
-for ROIindx = 1:NROI
-
-    % Get ROI details
-    ROIName = ROINames{ROIindx};
-    whereROI = [ROIDetails.ROIName{:}] == ROIName;
-    T2 = ROIDetails.T2{whereROI};
-    D = ROIDetails.D{whereROI};
-
-    % ROI bools
-    ROIbools = ([FittingResults.ROIName] == ROIName);
-
-    trueD = D;
-    Ds(ROIindx, : ) = ([FittingResults(ROIbools).Dfit]);
-    scatter(ROIindx*ones(Nimg, 1), Ds(ROIindx, :), '*', MarkerEdgeColor = colordict(ROIindx), DisplayName = concentrations(ROIName)) 
-    hold on
-    scatter([ROIindx+0.4], [trueD], MarkerEdgeColor = 'black', MarkerFaceColor='black', Marker = 'o', HandleVisibility = 'off')
-
-end
-
-boxplot(transpose(Ds))
-xticks(linspace(1,NROI,NROI))
-xticklabels(concentrations(ROINames))
-xlabel('PVP concentration')
-ylabel('Estimated D (mm^2/s)')
-ylim([0,1.2e-3])
-grid on
-title(noisetype)
-% legend;
-ax = gca();
-ax.FontSize = 12;
-
-
-% == Figure 3: Resnorm
-
-
-fig3 = figure;
-
-resnorms = zeros(NROI, Nimg);
-
-for ROIindx = 1:NROI
-
-    % Get ROI details
-    ROIName = ROINames{ROIindx};
-    whereROI = [ROIDetails.ROIName{:}] == ROIName;
-    T2 = ROIDetails.T2{whereROI};
-    D = ROIDetails.D{whereROI};
-
-
-    % ROI bools
-    ROIbools = ([FittingResults.ROIName] == ROIName);
-
-    % Extract sigma0 measurements
-    resnorms(ROIindx, :) = [FittingResults(ROIbools).resnorm];
-    scatter(ROIindx*ones(Nimg, 1), resnorms(ROIindx, :), '*', MarkerEdgeColor = colordict(ROIindx), DisplayName = concentrations(ROIName)) 
-    hold on
-
-end
-
-boxplot(transpose(resnorms))
-xticks(linspace(1,NROI,NROI))
-xticklabels(concentrations(ROINames))
-xlabel('PVP concentration')
-ylabel('Fitting Residual Error')
-grid on
-title(noisetype)
-legend;
-ax = gca();
-ax.FontSize = 12;
-
-
-
 
 %% Save figures and fitting results
 
-outputfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD\Projects\DWI Noise Project\Code\DWI-Noise-Project\Phantom Experiments\Outputs\Experiment 1");
+outputfolder = fullfile(rootfolder, 'Phantom Experiments', 'Outputs');
 dt = char(datetime());
 dt = strrep(dt, ':', '-');
-outf = [outputfolder '/' dt];
-figfolder = [outf '/figures'];
+outf = fullfile(outputfolder , dt);
+figfolder = fullfile(outf ,'figures');
 mkdir(figfolder);
 
 
@@ -374,21 +299,12 @@ Meta.imagefolder = imgtype;
 Meta.ImageNames = ImageNames;
 Meta.ROINames = ROINames;
 Meta.NoiseType = noisetype;
-if ~strcmp(imgtype, 'MAT')
-    Meta.rescale = rescale;
-end
-
 Meta.Derr = Derr;
-Meta.T2err = T2err;
 Meta.sigma0range = [sigma0min, sigma0max];
-
 
 save([outf '/Meta.mat'], "Meta");
 save([outf '/FittingResults.mat'], "FittingResults");
 
 % Save figures
 saveas(fig1, [char(figfolder) '/sigma0.fig'])
-saveas(fig2, [char(figfolder) '/T2.fig'])
-saveas(fig3, [char(figfolder) '/D.fig'])
-saveas(fig4, [char(figfolder) '/Resnorm.fig'])
 clear;

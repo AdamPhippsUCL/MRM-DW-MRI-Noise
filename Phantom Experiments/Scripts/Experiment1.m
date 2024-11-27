@@ -7,27 +7,27 @@ rootfolder = pwd;
 ImageDatafolder = fullfile(rootfolder, 'Phantom Experiments', 'Imaging Data');
 
 
-%% Exepriment Settings
+%% Experiment Settings
 
 % Noise model in fitting
-noisetype = 'Rice';
+noisetype = 'Ratio';
 
 % Use denoised images?
 usedenoised = false;
 
 % Figure visibility
-figvis = 'on';
+figvis = 'off';
 
 % Define image names to use
 ImageNames = {
-    'b1500_Ex1',...
     'b2000_Ex1',...
-    % 'b2100_Ex1',...
-    % 'b2400_Ex1',...
-    % 'b2500_Ex1',...
-    % 'b2750_Ex1',...
-    % 'b3000_Ex1',...
-    % 'b3500_Ex1',...
+    'b2100_Ex1',...
+    'b2400_Ex1',...
+    'b2500_Ex1',...
+    'b2750_Ex1',...
+    'b3000_Ex1',...
+    'b3500_Ex1',...
+    'b1500_Ex1',...
     };
 
 Nimg = length(ImageNames);
@@ -36,12 +36,12 @@ Nimg = length(ImageNames);
 ROINames = {
     "ROI1",...
     "ROI2",...
-    % "ROI3",...
-    % "ROI4",...
-    % "ROI5",...
-    % "ROI6",...
-    % "ROI7",...
-    % "ROI8"
+    "ROI3",...
+    "ROI4",...
+    "ROI5",...
+    "ROI6",...
+    "ROI7",...
+    "ROI8"
     };
 
 NROI = length(ROINames);
@@ -114,17 +114,14 @@ for ROIindx = 1:NROI
 
         % Rescale if using DN images (rescale map from bias removal method)
         if strcmp(imgtype, 'MAT DN')
-            if rescale
-                Rescale = double(load(fullfile(imagefolder , char(ImageName) , 'Rescale.mat')).Rescale);
-                ROIrescale = Rescale(ROI);
-                shift = mean(ROIvalues)*(1-mean(ROIrescale));
-                ROIvalues = ROIvalues - shift;
-            end
+            Rescale = double(load(fullfile(imagefolder , char(ImageName) , 'Rescale.mat')).Rescale);
+            ROIrescale = Rescale(ROI);
+            shift = mean(ROIvalues)*(1-mean(ROIrescale));
+            ROIvalues = ROIvalues - shift;
         end
 
 
         % Define histogram bins
-
         binmin = 0;
         binmax = 2;
         if max(ROIvalues)<1
@@ -218,7 +215,9 @@ for ROIindx = 1:NROI
         ax = gca();
         ax.FontSize = 12;
         legend;
-        pause(1)
+        if strcmp(figvis, 'on')
+            pause(1)
+        end
         close(f);
 
         % Fill in results
@@ -349,6 +348,7 @@ xticks(linspace(1,NROI,NROI))
 xticklabels(concentrations(ROINames))
 xlabel('PVP concentration')
 ylabel('Fitting Residual Error')
+ylim([0 5e-3])
 grid on
 title(noisetype)
 legend;
@@ -365,17 +365,12 @@ outf = fullfile(outputfolder , dt);
 figfolder = fullfile(outf ,'figures');
 mkdir(figfolder);
 
-
 % Meta information
 Meta = struct();
 Meta.imagefolder = imgtype;
 Meta.ImageNames = ImageNames;
 Meta.ROINames = ROINames;
 Meta.NoiseType = noisetype;
-if ~strcmp(imgtype, 'MAT')
-    Meta.rescale = rescale;
-end
-
 Meta.Derr = Derr;
 Meta.sigma0range = [sigma0min, sigma0max];
 
