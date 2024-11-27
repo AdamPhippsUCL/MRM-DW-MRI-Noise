@@ -3,7 +3,7 @@
 rootfolder = pwd;
 
 % Patient
-Patient = 'Patient_2';
+Patient = 'Patient_4';
 
 % Load parameter maps
 sigma0 = load(fullfile(rootfolder, 'In vivo Parameter Estimation', 'Outputs', Patient, 'sigma0.mat' )).sigma0;

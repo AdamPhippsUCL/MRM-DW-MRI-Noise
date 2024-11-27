@@ -4,7 +4,7 @@
 rootfolder = pwd;
 
 % Patient
-Patient = 'Patient_3';
+Patient = 'Patient_4';
 
 % Load images
 IMG1 = load(fullfile(rootfolder, 'In vivo Parameter Estimation', 'Imaging Data', 'MAT', Patient, 'TE1.mat')).TE1;
