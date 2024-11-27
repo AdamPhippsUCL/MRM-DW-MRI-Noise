@@ -1,0 +1,6 @@
+Imaging data for In vivo Parameter Estimation is available at: DOI: 10.17632/5pjw9nxbw4.1
+
+STEPS:
+- Download and unzip dataset
+- Navigate to .../In vivo Parameter Estimation/Imaging Data/...
+- Copy folders into code folder in same location: ../MRM-DW-MRI-Noise/In vivo Parameter Estimation/Imaging Data/...
