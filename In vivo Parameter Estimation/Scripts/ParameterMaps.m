@@ -3,7 +3,7 @@
 rootfolder = pwd;
 
 % Patient
-Patient = 'Patient_1';
+Patient = 'Patient_3';
 
 % Load parameter maps
 b0 = load(fullfile(rootfolder , 'In vivo Parameter Estimation', 'Imaging Data' , 'MAT', Patient, 'avgTE1.mat')).avgTE1;
@@ -24,7 +24,7 @@ switch Patient
         slice = 11;
         dispinds = [28 88 29 84];
     case 'Patient_3'
-        slice = 9;
+        slice = 8;
         dispinds = [27 79 30 82];
     case 'Patient_4'
         slice = 8;
