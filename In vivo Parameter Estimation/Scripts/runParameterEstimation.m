@@ -13,8 +13,12 @@ IMG2 = load(fullfile(rootfolder, 'In vivo Parameter Estimation', 'Imaging Data',
 % Define TE vector
 TEvec = [50, 125];
 
+
+% Calibration curve folder 
+CalibrationCurveFolder = fullfile(rootfolder, 'In vivo Parameter Estimation', 'Functions', 'Sigma0 Calibration Curves');
+
 % Run parameter estimation
-[sigma0, T2] = EstimateNoiseParameters(IMG1, IMG2, TEvec);
+[sigma0, T2] = EstimateNoiseParameters(IMG1, IMG2, TEvec, CalibrationCurveFolder=CalibrationCurveFolder);
 
 
 % Slice wise smoothing

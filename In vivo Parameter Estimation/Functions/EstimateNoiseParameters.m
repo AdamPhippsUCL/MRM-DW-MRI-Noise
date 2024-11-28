@@ -9,6 +9,7 @@ function [sigma0, T2] = EstimateNoiseParameters(IMG1, IMG2, TEvec, opts)
 
         opts.patchsize = [1 1] % If estimation done with patches
         opts.maskprcnt = 75
+        opts.CalibrationCurveFolder
     end
 
 
@@ -53,6 +54,10 @@ end
 
 %% Parameter estimation
 
+
+% Load T2 values of calibration curves
+load(fullfile(opts.CalibrationCurveFolder, 'T2s.mat'));
+
 T2 = zeros([Nx, Ny, Nz]);
 sigma0 = zeros([Nx, Ny, Nz]);
 
@@ -90,8 +95,24 @@ for zindx = 1:Nz
             T2guess(T2guess>250) = 250;
 
             % sigma0
-            rTE = (2*(TE1^2))/(TE1+TE2);
-            sigma0guess = std(normvals)/(sqrt(2)*exp(rTE/T2guess));
+
+            stdval = std(normvals);
+
+            % Round T2 value
+            T2rounded = roundtowardvec(T2guess, T2s);
+
+            % Load calibration curve
+            load( fullfile(opts.CalibrationCurveFolder, ['T2 ' num2str(T2rounded)] , 'CalibrationCurve') );
+            
+            % keys
+            stdkeys = keys(CalibrationCurve);
+
+            % round standard deviation
+            stdval = roundtowardvec(stdval, stdkeys);
+
+            % Get sigma0
+            sigma0guess = CalibrationCurve(stdval);
+
 
             sigma0fit = sigma0guess;
             T2fit = T2guess;

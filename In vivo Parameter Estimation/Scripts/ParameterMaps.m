@@ -3,7 +3,7 @@
 rootfolder = pwd;
 
 % Patient
-Patient = 'Patient_4';
+Patient = 'Patient_1';
 
 % Load parameter maps
 b0 = load(fullfile(rootfolder , 'In vivo Parameter Estimation', 'Imaging Data' , 'MAT', Patient, 'avgTE1.mat')).avgTE1;
@@ -55,7 +55,7 @@ f2.Position = [300   200   409   300];
 tiledlayout(1,1, "TileSpacing","compact");
 nexttile;
 sigma0ROI = sigma0.*ROI;
-imshow(sigma0ROI(dispinds(3):dispinds(4),dispinds(1):dispinds(2), slice), [0 0.08]);
+imshow(sigma0ROI(dispinds(3):dispinds(4),dispinds(1):dispinds(2), slice), [0.0 0.08]);
 c=colorbar;
 c.Label.String = '\sigma_0';
 ax = gca();
